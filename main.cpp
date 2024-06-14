@@ -60,9 +60,11 @@ int main()
     }
 
     Context context;
-    context.chunk.setVoxel(1, 1, 1, DIRT);
-    context.chunk.setVoxel(2, 1, 1, GRASS); // Add more voxels for testing
-    context.chunk.setVoxel(1, 2, 1, STONE);
+    context.chunk.setVoxel(1, 0, 0, DIRT);
+    context.chunk.setVoxel(2, 0, 0, GRASS); // Add more voxels for testing
+    context.chunk.setVoxel(3, 0, 0, STONE);
+    context.chunk.setVoxel(4, 0, 0, SAND);
+    context.chunk.setVoxel(5, 0, 0, WATER);
 
     // Set the window user pointer to the context before setting callbacks
     glfwSetWindowUserPointer(window, &context);
