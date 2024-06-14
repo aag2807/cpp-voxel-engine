@@ -5,7 +5,7 @@
 #include <vector>
 #include "Voxel.h"
 
-using VoxelCollection = std::vector<std::vector<std::vector<Voxel>>>;
+using VoxelCollection =  std::vector<std::vector<std::vector<Voxel>>>;
 
 const int CHUNK_SIZE = 16;
 
@@ -18,8 +18,12 @@ public:
 
     void setVoxel(int x, int y, int z, VoxelType type);
 
+    void update(); // Add an update function if necessary
+
 private:
     VoxelCollection voxels;
+    bool needsUpdate;
+
 };
 
 

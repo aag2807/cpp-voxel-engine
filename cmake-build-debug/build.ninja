@@ -98,6 +98,13 @@ build CMakeFiles/VoxelEngine.dir/src/Context.cpp.o: CXX_COMPILER__VoxelEngine_un
   OBJECT_DIR = CMakeFiles/VoxelEngine.dir
   OBJECT_FILE_DIR = CMakeFiles/VoxelEngine.dir/src
 
+build CMakeFiles/VoxelEngine.dir/src/Utils.cpp.o: CXX_COMPILER__VoxelEngine_unscanned_Debug /Users/reinaldo/CLionProjects/VoxelEngine/src/Utils.cpp || cmake_object_order_depends_target_VoxelEngine
+  DEP_FILE = CMakeFiles/VoxelEngine.dir/src/Utils.cpp.o.d
+  FLAGS = -g -std=gnu++17 -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -mmacosx-version-min=14.4 -fcolor-diagnostics
+  INCLUDES = -I/opt/homebrew/include/glm -F/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk/System/Library/Frameworks -isystem /opt/homebrew/include
+  OBJECT_DIR = CMakeFiles/VoxelEngine.dir
+  OBJECT_FILE_DIR = CMakeFiles/VoxelEngine.dir/src
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target VoxelEngine
@@ -106,7 +113,7 @@ build CMakeFiles/VoxelEngine.dir/src/Context.cpp.o: CXX_COMPILER__VoxelEngine_un
 #############################################
 # Link the executable VoxelEngine
 
-build VoxelEngine: CXX_EXECUTABLE_LINKER__VoxelEngine_Debug CMakeFiles/VoxelEngine.dir/main.cpp.o CMakeFiles/VoxelEngine.dir/src/Voxel.cpp.o CMakeFiles/VoxelEngine.dir/src/Chunk.cpp.o CMakeFiles/VoxelEngine.dir/src/Renderer.cpp.o CMakeFiles/VoxelEngine.dir/src/InputHandler.cpp.o CMakeFiles/VoxelEngine.dir/src/Camera.cpp.o CMakeFiles/VoxelEngine.dir/src/Context.cpp.o | /opt/homebrew/lib/libglfw.3.4.dylib /opt/homebrew/lib/libGLEW.dylib
+build VoxelEngine: CXX_EXECUTABLE_LINKER__VoxelEngine_Debug CMakeFiles/VoxelEngine.dir/main.cpp.o CMakeFiles/VoxelEngine.dir/src/Voxel.cpp.o CMakeFiles/VoxelEngine.dir/src/Chunk.cpp.o CMakeFiles/VoxelEngine.dir/src/Renderer.cpp.o CMakeFiles/VoxelEngine.dir/src/InputHandler.cpp.o CMakeFiles/VoxelEngine.dir/src/Camera.cpp.o CMakeFiles/VoxelEngine.dir/src/Context.cpp.o CMakeFiles/VoxelEngine.dir/src/Utils.cpp.o | /opt/homebrew/lib/libglfw.3.4.dylib /opt/homebrew/lib/libGLEW.dylib
   FLAGS = -g -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk -mmacosx-version-min=14.4
   LINK_FLAGS = -L/opt/homebrew/opt/icu4c/lib
   LINK_LIBRARIES = -Wl,-rpath,/opt/homebrew/lib  -framework OpenGL  -framework OpenGL  /opt/homebrew/lib/libglfw.3.4.dylib  /opt/homebrew/lib/libGLEW.dylib  -framework GLUT  -framework OpenGL

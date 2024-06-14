@@ -7,6 +7,7 @@
 #include "src/Renderer.h"
 #include "src/Camera.h"
 #include "src/Context.h"
+#include "src/Utils.h"
 
 void processInput(GLFWwindow *window, Camera &camera, float deltaTime);
 
@@ -22,11 +23,15 @@ void setupLighting();
 
 void drawCrosshair();
 
+void drawCurrentBlockType(const Context &context);
+
 void spawnBlock(Chunk &chunk, const Camera &camera, VoxelType blockType, float spawnDistance);
 
 void removeBlock(Chunk &chunk, const Camera &camera, float reachDistance);
 
 Voxel getTargetedBlock(Chunk &chunk, const Camera &camera, float reachDistance, glm::vec3 &hitPosition);
+
+void renderLoop(GLFWwindow *window, Context &context, Renderer &renderer);
 
 float lastX = 400, lastY = 300;
 bool firstMouse = true;
@@ -80,6 +85,14 @@ int main()
 
     Renderer renderer;
 
+    renderLoop(window, context, renderer);
+
+    glfwTerminate();
+    return 0;
+}
+
+void renderLoop(GLFWwindow *window, Context &context, Renderer &renderer)
+{
     while (!glfwWindowShouldClose(window))
     {
         float currentFrame = glfwGetTime();
@@ -95,13 +108,11 @@ int main()
         glMultMatrixf(glm::value_ptr(context.camera.getViewMatrix()));
         renderer.renderChunk(context.chunk);
         drawCrosshair();
+        drawCurrentBlockType(context);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-    glfwTerminate();
-    return 0;
 }
 
 void processInput(GLFWwindow *window, Camera &camera, float deltaTime)
@@ -172,6 +183,8 @@ void setupOpenGL()
     glLoadIdentity();
     gluPerspective(45.0, 4.0 / 3.0, 0.1, 100.0);
     glMatrixMode(GL_MODELVIEW);
+
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // RGBA values for blue
 }
 
 void setupLighting()
@@ -231,6 +244,7 @@ void spawnBlock(Chunk &chunk, const Camera &camera, VoxelType blockType, float s
     if (x >= 0 && x < CHUNK_SIZE && y >= 0 && y < CHUNK_SIZE && z >= 0 && z < CHUNK_SIZE)
     {
         chunk.setVoxel(x, y, z, blockType); // Use the current block type to spawn
+        chunk.update(); // Ensure chunk is updated after changing a voxel
     }
 }
 
@@ -248,6 +262,7 @@ void removeBlock(Chunk &chunk, const Camera &camera, float reachDistance)
         if (x >= 0 && x < CHUNK_SIZE && y >= 0 && y < CHUNK_SIZE && z >= 0 && z < CHUNK_SIZE)
         {
             chunk.setVoxel(x, y, z, AIR);
+            chunk.update(); // Ensure chunk is updated after removing a voxel
         }
     }
 }
@@ -277,3 +292,50 @@ Voxel getTargetedBlock(Chunk &chunk, const Camera &camera, float reachDistance, 
     }
     return Voxel{AIR}; // Return an AIR voxel if nothing was found
 }
+
+void drawCurrentBlockType(const Context &context)
+{
+    std::string blockName;
+
+    switch (context.currentBlockType)
+    {
+        case DIRT:
+            blockName = "DIRT";
+            break;
+        case GRASS:
+            blockName = "GRASS";
+            break;
+        case STONE:
+            blockName = "STONE";
+            break;
+        case SAND:
+            blockName = "SAND";
+            break;
+        case WATER:
+            blockName = "WATER";
+            break;
+        default:
+            blockName = "UNKNOWN";
+            break;
+    }
+
+    int width, height;
+    glfwGetWindowSize(glfwGetCurrentContext(), &width, &height);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, width, height, 0, -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    // Set text color to white
+    glColor3f(1.0f, 1.0f, 1.0f);
+    drawText("Current Block: " + blockName, 10, 20, 1.0f, 1.0f, 1.0f);
+
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+}
+

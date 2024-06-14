@@ -20,6 +20,8 @@ add_executable(VoxelEngine main.cpp
         src/Camera.h
         src/Context.cpp
         src/Context.h
+        src/Utils.cpp
+        src/Utils.h
 )
 
 # Find and include OpenGL
