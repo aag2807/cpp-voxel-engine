@@ -32,6 +32,12 @@ find_package(glfw3 3.3 REQUIRED)
 include_directories(${GLFW_INCLUDE_DIRS})
 target_link_libraries(VoxelEngine glfw)
 
+# Find and include GLEW
+find_path(GLEW_INCLUDE_DIR NAMES GL/glew.h PATHS /opt/homebrew/include)
+find_library(GLEW_LIBRARY NAMES GLEW glew PATHS /opt/homebrew/lib)
+include_directories(${GLEW_INCLUDE_DIR})
+target_link_libraries(VoxelEngine ${GLEW_LIBRARY})
+
 # Use the macOS system frameworks for GLUT
 target_link_libraries(VoxelEngine "-framework GLUT")
 

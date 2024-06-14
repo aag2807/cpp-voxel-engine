@@ -1,3 +1,4 @@
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <GLUT/glut.h>
 #include <glm/trigonometric.hpp>
@@ -13,15 +14,19 @@ void mouseCallback(GLFWwindow *window, double xpos, double ypos);
 
 void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 
+void scrollCallback(GLFWwindow *window, double xoffset, double yoffset);
+
 void setupOpenGL();
+
+void setupLighting();
 
 void drawCrosshair();
 
-void spawnBlock(Chunk &chunk, const Camera &camera, float spawnDistance, GLFWwindow *window);
+void spawnBlock(Chunk &chunk, const Camera &camera, VoxelType blockType, float spawnDistance);
 
-void scrollCallback(GLFWwindow *window, double xoffset, double yoffset);
+void removeBlock(Chunk &chunk, const Camera &camera, float reachDistance);
 
-void setupLighting();
+Voxel getTargetedBlock(Chunk &chunk, const Camera &camera, float reachDistance, glm::vec3 &hitPosition);
 
 float lastX = 400, lastY = 300;
 bool firstMouse = true;
@@ -41,6 +46,13 @@ int main()
     }
 
     glfwMakeContextCurrent(window);
+
+    glewExperimental = GL_TRUE;
+    if (glewInit() != GLEW_OK)
+    {
+        std::cerr << "Failed to initialize GLEW" << std::endl;
+        return -1;
+    }
 
     Context context;
     context.chunk.setVoxel(1, 1, 1, DIRT);
@@ -79,8 +91,8 @@ int main()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glLoadIdentity();
-        glMultMatrixf(glm::value_ptr(context.camera.getViewMatrix()));
 
+        glMultMatrixf(glm::value_ptr(context.camera.getViewMatrix()));
         renderer.renderChunk(context.chunk);
         drawCrosshair();
 
@@ -123,10 +135,31 @@ void mouseCallback(GLFWwindow *window, double xpos, double ypos)
 
 void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
 {
+    Context *context = static_cast<Context *>(glfwGetWindowUserPointer(window));
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
-        Context *context = static_cast<Context *>(glfwGetWindowUserPointer(window));
-        spawnBlock(context->chunk, context->camera, 4.0f, window);
+        spawnBlock(context->chunk, context->camera, context->currentBlockType,
+                   4.0f); // Adjust the spawn distance as needed
+    }
+    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+    {
+        removeBlock(context->chunk, context->camera, 4.0f); // Adjust the reach distance as needed
+    }
+}
+
+void scrollCallback(GLFWwindow *window, double xoffset, double yoffset)
+{
+    Context *context = static_cast<Context *>(glfwGetWindowUserPointer(window));
+
+    // Cycle through block types on scroll
+    if (yoffset > 0)
+    {
+        context->currentBlockType = static_cast<VoxelType>((context->currentBlockType + 1) %
+                                                           6); // Assuming 6 block types
+    } else if (yoffset < 0)
+    {
+        context->currentBlockType = static_cast<VoxelType>((context->currentBlockType - 1 + 6) %
+                                                           6); // Assuming 6 block types
     }
 }
 
@@ -139,6 +172,23 @@ void setupOpenGL()
     glLoadIdentity();
     gluPerspective(45.0, 4.0 / 3.0, 0.1, 100.0);
     glMatrixMode(GL_MODELVIEW);
+}
+
+void setupLighting()
+{
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+
+    GLfloat ambientLight[] = {0.2f, 0.2f, 0.2f, 1.0f};
+    GLfloat diffuseLight[] = {0.8f, 0.8f, 0.8f, 1.0f};
+    GLfloat lightPosition[] = {1.0f, 1.0f, 1.0f, 0.0f};
+
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+
+    glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
 }
 
 void drawCrosshair()
@@ -168,48 +218,62 @@ void drawCrosshair()
     glPopMatrix();
 }
 
-void spawnBlock(Chunk &chunk, const Camera &camera, float spawnDistance, GLFWwindow *window)
+void spawnBlock(Chunk &chunk, const Camera &camera, VoxelType blockType, float spawnDistance)
 {
     glm::vec3 cameraPos = camera.getPosition();
     glm::vec3 cameraFront = camera.getFront();
 
-    glm::vec3 blockPos = cameraPos + cameraFront * spawnDistance;
+    glm::vec3 blockPos = cameraPos + cameraFront * spawnDistance; // Adjust the distance to spawn the block
     int x = static_cast<int>(round(blockPos.x));
     int y = static_cast<int>(round(blockPos.y));
     int z = static_cast<int>(round(blockPos.z));
 
     if (x >= 0 && x < CHUNK_SIZE && y >= 0 && y < CHUNK_SIZE && z >= 0 && z < CHUNK_SIZE)
     {
-        Context *context = static_cast<Context *>(glfwGetWindowUserPointer(window));
-        chunk.setVoxel(x, y, z, context->currentBlockType);
+        chunk.setVoxel(x, y, z, blockType); // Use the current block type to spawn
     }
 }
 
-void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-    Context* context = static_cast<Context*>(glfwGetWindowUserPointer(window));
-
-    // Cycle through block types on scroll
-    if (yoffset > 0) {
-        context->currentBlockType = static_cast<VoxelType>((context->currentBlockType + 1) % 6); // Assuming 6 block types
-    } else if (yoffset < 0) {
-        context->currentBlockType = static_cast<VoxelType>((context->currentBlockType - 1 + 6) % 6); // Assuming 6 block types
-    }
-}
-
-
-void setupLighting()
+void removeBlock(Chunk &chunk, const Camera &camera, float reachDistance)
 {
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
+    glm::vec3 hitPosition;
+    Voxel targetedVoxel = getTargetedBlock(chunk, camera, reachDistance, hitPosition);
 
-    GLfloat ambientLight[] = {0.2f, 0.2f, 0.2f, 1.0f};
-    GLfloat diffuseLight[] = {0.8f, 0.8f, 0.8f, 1.0f};
-    GLfloat lightPosition[] = {1.0f, 1.0f, 1.0f, 0.0f};
+    if (targetedVoxel.type != AIR)
+    {
+        int x = static_cast<int>(round(hitPosition.x));
+        int y = static_cast<int>(round(hitPosition.y));
+        int z = static_cast<int>(round(hitPosition.z));
 
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+        if (x >= 0 && x < CHUNK_SIZE && y >= 0 && y < CHUNK_SIZE && z >= 0 && z < CHUNK_SIZE)
+        {
+            chunk.setVoxel(x, y, z, AIR);
+        }
+    }
+}
 
-    glEnable(GL_COLOR_MATERIAL);
-    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+Voxel getTargetedBlock(Chunk &chunk, const Camera &camera, float reachDistance, glm::vec3 &hitPosition)
+{
+    glm::vec3 cameraPos = camera.getPosition();
+    glm::vec3 cameraFront = camera.getFront();
+
+    for (float t = 0.0f; t < reachDistance; t += 0.1f)
+    {
+        glm::vec3 pos = cameraPos + cameraFront * t;
+
+        int x = static_cast<int>(round(pos.x));
+        int y = static_cast<int>(round(pos.y));
+        int z = static_cast<int>(round(pos.z));
+
+        if (x >= 0 && x < CHUNK_SIZE && y >= 0 && y < CHUNK_SIZE && z >= 0 && z < CHUNK_SIZE)
+        {
+            Voxel voxel = chunk.getVoxel(x, y, z);
+            if (voxel.type != AIR)
+            {
+                hitPosition = pos;
+                return voxel;
+            }
+        }
+    }
+    return Voxel{AIR}; // Return an AIR voxel if nothing was found
 }

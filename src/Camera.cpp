@@ -8,7 +8,7 @@ Camera::Camera()
           worldUp(up),
           yaw(-90.0f),
           pitch(0.0f),
-          movementSpeed(2.5f),
+          movementSpeed(4.5f),
           mouseSensitivity(0.1f)
 {
     updateCameraVectors();
