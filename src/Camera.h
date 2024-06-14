@@ -9,32 +9,26 @@ class Camera
 public:
     Camera();
 
-    void update();
+    glm::mat4 getViewMatrix() const;
 
     void processKeyboard(GLFWwindow *window, float deltaTime);
 
     void processMouse(float xOffset, float yOffset);
 
+    void moveUp(float deltaTime); // Add this method to move up along the Y-axis
+    void moveDown(float deltaTime); // Add this method to move down along the Y-axis
     glm::vec3 getPosition() const;
 
     glm::vec3 getFront() const;
-
-    glm::mat4 getViewMatrix() const;
 
 private:
     glm::vec3 position;
     glm::vec3 front;
     glm::vec3 up;
-    glm::vec3 right;
-    glm::vec3 worldUp;
-
     float yaw;
     float pitch;
-
     float movementSpeed;
     float mouseSensitivity;
-
-    void updateCameraVectors();
 };
 
 #endif // CAMERA_H

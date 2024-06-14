@@ -1,23 +1,14 @@
 #include "Camera.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <GLFW/glfw3.h>
 
-Camera::Camera()
-        : position(glm::vec3(0.0f, 0.0f, 3.0f)),
-          front(glm::vec3(0.0f, 0.0f, -1.0f)),
-          up(glm::vec3(0.0f, 1.0f, 0.0f)),
-          worldUp(up),
-          yaw(-90.0f),
-          pitch(0.0f),
-          movementSpeed(4.5f),
-          mouseSensitivity(0.1f)
-{
-    updateCameraVectors();
-}
+Camera::Camera() : position(0.0f, 0.0f, 3.0f), front(0.0f, 0.0f, -1.0f), up(0.0f, 1.0f, 0.0f),
+                   yaw(-90.0f), pitch(0.0f), movementSpeed(2.5f), mouseSensitivity(0.1f)
+{}
 
-void Camera::update()
+glm::mat4 Camera::getViewMatrix() const
 {
-    // This method could be used for any continuous updates
-    updateCameraVectors();
+    return glm::lookAt(position, position + front, up);
 }
 
 void Camera::processKeyboard(GLFWwindow *window, float deltaTime)
@@ -28,9 +19,13 @@ void Camera::processKeyboard(GLFWwindow *window, float deltaTime)
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         position -= front * velocity;
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        position -= right * velocity;
+        position -= glm::normalize(glm::cross(front, up)) * velocity;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        position += right * velocity;
+        position += glm::normalize(glm::cross(front, up)) * velocity;
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        moveUp(deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        moveDown(deltaTime);
 }
 
 void Camera::processMouse(float xOffset, float yOffset)
@@ -46,17 +41,21 @@ void Camera::processMouse(float xOffset, float yOffset)
     if (pitch < -89.0f)
         pitch = -89.0f;
 
-    updateCameraVectors();
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+    front.y = sin(glm::radians(pitch));
+    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    this->front = glm::normalize(front);
 }
 
-glm::mat4 Camera::getViewMatrix() const
+void Camera::moveUp(float deltaTime)
 {
-    return glm::lookAt(position, position + front, up);
+    position.y += movementSpeed * deltaTime; // Move up along the Y-axis
 }
 
-glm::vec3 Camera::getFront() const
+void Camera::moveDown(float deltaTime)
 {
-    return front;
+    position.y -= movementSpeed * deltaTime; // Move down along the Y-axis
 }
 
 glm::vec3 Camera::getPosition() const
@@ -64,13 +63,7 @@ glm::vec3 Camera::getPosition() const
     return position;
 }
 
-void Camera::updateCameraVectors()
+glm::vec3 Camera::getFront() const
 {
-    glm::vec3 frontVec;
-    frontVec.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    frontVec.y = sin(glm::radians(pitch));
-    frontVec.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    front = glm::normalize(frontVec);
-    right = glm::normalize(glm::cross(front, worldUp));
-    up = glm::normalize(glm::cross(right, front));
+    return front;
 }
