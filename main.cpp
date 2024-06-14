@@ -185,21 +185,17 @@ void spawnBlock(Chunk &chunk, const Camera &camera, float spawnDistance, GLFWwin
     }
 }
 
-void scrollCallback(GLFWwindow *window, double xoffset, double yoffset)
-{
-    Context *context = static_cast<Context *>(glfwGetWindowUserPointer(window));
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+    Context* context = static_cast<Context*>(glfwGetWindowUserPointer(window));
 
     // Cycle through block types on scroll
-    if (yoffset > 0)
-    {
-        context->currentBlockType = static_cast<VoxelType>((context->currentBlockType + 1) %
-                                                           6); // Assuming 6 block types
-    } else if (yoffset < 0)
-    {
-        context->currentBlockType = static_cast<VoxelType>((context->currentBlockType - 1 + 6) %
-                                                           6); // Assuming 6 block types
+    if (yoffset > 0) {
+        context->currentBlockType = static_cast<VoxelType>((context->currentBlockType + 1) % 6); // Assuming 6 block types
+    } else if (yoffset < 0) {
+        context->currentBlockType = static_cast<VoxelType>((context->currentBlockType - 1 + 6) % 6); // Assuming 6 block types
     }
 }
+
 
 void setupLighting()
 {
